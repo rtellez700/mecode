@@ -262,6 +262,36 @@ class Printer(object):
         pos = dict([(k, float(v)) for k, v in r])
         return pos
 
+    def current_temperature(self):
+        """ Get the current temperature of the printer.
+
+        Returns
+        -------
+        temp : dict
+            Dict with keys of 'T', 'B', 'T/', 'B/', '@', and 'B@'
+            and values of their temperatures and powers.
+            T = extruder temperature, can also be T0, T1 ..
+            B = bed temperature
+            */ = target temperature
+            C = chamber temperature
+            @ = hotend power
+            B@ = bed power
+        """
+        # example r: T:149.98 /150.00 B:60.00 /60.00 @:72 B@:30
+        r = self.get_response("M105")
+        r = r.replace(' /', '/').strip().split()
+        temp = {}
+        for item in r:
+            if ':' in item:
+                name, val = item.split(':', 1)
+                if '/' in val:
+                    val1, val2 = val.split('/')
+                    temp[name] = float(val1)
+                    temp[name + '/'] = float(val2)
+                else:
+                    temp[name] = float(val)
+        return temp
+
     def reset_linenumber(self, number = 0):
         line = "M110 N{}".format(number)
         self.sendline(line)
