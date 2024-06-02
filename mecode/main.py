@@ -4,7 +4,7 @@ import sys
 import numpy as np
 import copy
 from collections import defaultdict
-import warnings 
+import warnings
 import matplotlib.colors as mcolors
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -68,7 +68,7 @@ class G(object):
             file.
         print_lines : bool (default: True)
             Whether or not to print the compiled GCode to stdout
-        
+
         Other Parameters
         ----------------
         header : path or None (default: None)
@@ -212,7 +212,7 @@ class G(object):
                 import pkg_resources  # part of setuptools
 
                 version = pkg_resources.require("mecode")[0].version
-                
+
                 return version
             except:
                 return None
@@ -256,7 +256,7 @@ class G(object):
             if local_package_version is not None and remote_package_version is not None:
                 if version.parse(local_package_version) < version.parse(remote_package_version):
                     print("A new mecode version is available. To upgrade to the latest version run:\n\t>>> pip install git+https://github.com/rtellez700/mecode.git --upgrade")
-            
+
     def __enter__(self):
         """
         Context manager entry
@@ -281,7 +281,7 @@ class G(object):
 
         Examples
         --------
-        
+
         set the current position to X=0, Y=0
         >>> g.set_home(0, 0)
 
@@ -380,7 +380,7 @@ class G(object):
             self._socket.close()
         if self._p is not None:
             self._p.disconnect(wait)
-        
+
         # do not calculate print time during unittests
         if 'unittest' not in sys.modules.keys():
             self.calc_print_time()
@@ -407,7 +407,7 @@ class G(object):
         '''
         # self.extrude = True
         # if accel is not None:
-            
+
         self.write(f'MOVEINC {axis} {disp:.6f} {speed:.6f}')
         # self.extrude = False
 
@@ -441,12 +441,12 @@ class G(object):
         if self.speed == 0:
             msg = 'WARNING! no print speed has been set. Will default to previously used print speed.'
             self.write('; ' + msg)
-            
+
             warnings.warn('''
                             >>> No print speed has been specified
                             e.g., to set print speed to 15 mm/s use:
                             \t\t g.feed(15)
-                            
+
                             If this is not the intended behavior please set a print speed. You can ignore this if your testing out features such as testing serial communication etc.
                             ''')
 
@@ -523,7 +523,7 @@ class G(object):
 
         Examples
         --------
-        TODO: updates these 
+        TODO: updates these
         >>> # arc 10 mm up in y and 10 mm over in x with a radius of 20.
         >>> g.arc(x=10, y=10, radius=20)
 
@@ -535,22 +535,22 @@ class G(object):
 
         """
         if direction == 'CW':
-            self.arc(x=radius, y=radius, radius=radius, direction='CW', **kwargs)
-            self.arc(x=radius, y=-radius, radius=radius, direction='CW', **kwargs)
-            self.arc(x=-radius, y=-radius, radius=radius, direction='CW', **kwargs)
-            self.arc(x=-radius, y=radius, radius=radius, direction='CW', **kwargs)
+            self.arc(x=radius, y=radius, radius=radius, direction='CW', linearize=linearize, **kwargs)
+            self.arc(x=radius, y=-radius, radius=radius, direction='CW', linearize=linearize, **kwargs)
+            self.arc(x=-radius, y=-radius, radius=radius, direction='CW', linearize=linearize, **kwargs)
+            self.arc(x=-radius, y=radius, radius=radius, direction='CW', linearize=linearize, **kwargs)
         elif direction == 'CCW':
-            self.arc(x=-radius, y=radius, radius=radius, direction='CCW', **kwargs)
-            self.arc(x=-radius, y=-radius, radius=radius, direction='CCW', **kwargs)
-            self.arc(x=radius, y=-radius, radius=radius, direction='CCW', **kwargs)
-            self.arc(x=radius, y=radius, radius=radius, direction='CCW', **kwargs)
+            self.arc(x=-radius, y=radius, radius=radius, direction='CCW', linearize=linearize, **kwargs)
+            self.arc(x=-radius, y=-radius, radius=radius, direction='CCW', linearize=linearize, **kwargs)
+            self.arc(x=radius, y=-radius, radius=radius, direction='CCW', linearize=linearize, **kwargs)
+            self.arc(x=radius, y=radius, radius=radius, direction='CCW', linearize=linearize, **kwargs)
 
     def arc(self, x=None, y=None, z=None, direction='CW', radius='auto',
             helix_dim=None, helix_len=0, linearize=True, color=(0,1,0,0.5), **kwargs):
         """ Arc to the given point with the given radius and in the given
         direction. If helix_dim and helix_len are specified then the tool head
         will also perform a linear movement through the given dimension while
-        completing the arc. Note: Helix and flow calculation do not currently 
+        completing the arc. Note: Helix and flow calculation do not currently
         work with linearize.
 
         Parameters
@@ -631,7 +631,7 @@ class G(object):
             b_vect = b_length*perp_vect_dir
             c_vect = a_vect+b_vect
             # center_coords = c_vect
-            final_pos = a_vect*2-c_vect 
+            final_pos = a_vect*2-c_vect
             initial_pos = -c_vect
         else:
             k = [ky for ky in dims.keys()]
@@ -691,7 +691,7 @@ class G(object):
             initial_pos = np.array(initial_pos.tolist()).flatten()
             final_angle = np.arctan2(final_pos[1],final_pos[0])
             initial_angle = np.arctan2(initial_pos[1],initial_pos[0])
-            
+
             if direction == 'CW':
                 angle_difference = 2*np.pi-(final_angle-initial_angle)%(2*np.pi)
             elif direction == 'CCW':
@@ -700,7 +700,7 @@ class G(object):
             step_range = [0, angle_difference]
             step_size = np.pi/16
             angle_step = np.arange(step_range[0],step_range[1]+np.sign(angle_difference)*step_size,np.sign(angle_difference)*step_size)
-            
+
             segments = []
             for angle in angle_step:
                 radius_vect = -c_vect
@@ -708,7 +708,7 @@ class G(object):
                                  [math.sin(angle), math.cos(angle)]])
                 int_point = radius_vect*radius_rotation_matrix
                 segments.append(int_point)
-            
+
             for i in range(len(segments)-1):
                 move_line = segments[i+1]-segments[i]
                 self.move(*move_line.tolist()[0], color=color)
@@ -829,8 +829,8 @@ class G(object):
 
         >>> # 1x5 counterclockwise rect with radius of 2 starting in the upper right corner
         >>> g.round_rect(1, 5, direction='CCW', start='UR', radius=2)
-         
-                                    ______________ 
+
+                                    ______________
                                    /              \
                                   /                \
         starts here for 'UL' - > |                  | <- starts here for 'UR'
@@ -883,7 +883,7 @@ class G(object):
                 self.move(x=x-2*radius)
                 self.arc(x=radius,y=radius,direction='CCW',radius=radius, linearize=linearize)
                 self.move(y=y-2*radius)
-                self.arc(x=-radius,y=radius,direction='CCW',radius=radius, linearize=linearize)    
+                self.arc(x=-radius,y=radius,direction='CCW',radius=radius, linearize=linearize)
                 self.move(x=-(x-2*radius))
                 self.arc(x=-radius,y=-radius,direction='CCW',radius=radius, linearize=linearize)
                 self.move(y=-(y-2*radius))
@@ -893,21 +893,21 @@ class G(object):
                 self.move(x=x-2*radius)
                 self.arc(x=radius,y=radius,direction='CCW',radius=radius, linearize=linearize)
                 self.move(y=y-2*radius)
-                self.arc(x=-radius,y=radius,direction='CCW',radius=radius, linearize=linearize)    
+                self.arc(x=-radius,y=radius,direction='CCW',radius=radius, linearize=linearize)
                 self.move(x=-(x-2*radius))
                 self.arc(x=-radius,y=-radius,direction='CCW',radius=radius, linearize=linearize)
             elif start.upper() == 'UR':
-                self.arc(x=-radius,y=radius,direction='CCW',radius=radius, linearize=linearize) 
+                self.arc(x=-radius,y=radius,direction='CCW',radius=radius, linearize=linearize)
                 self.move(x=-(x-2*radius))
                 self.arc(x=-radius,y=-radius,direction='CCW',radius=radius, linearize=linearize)
                 self.move(y=-(y-2*radius))
                 self.arc(x=radius,y=-radius,direction='CCW',radius=radius, linearize=linearize)
                 self.move(x=x-2*radius)
                 self.arc(x=radius,y=radius,direction='CCW',radius=radius, linearize=linearize)
-                self.move(y=y-2*radius)   
+                self.move(y=y-2*radius)
             elif start.upper() == 'LR':
                 self.move(y=y-2*radius)
-                self.arc(x=-radius,y=radius,direction='CCW',radius=radius, linearize=linearize)    
+                self.arc(x=-radius,y=radius,direction='CCW',radius=radius, linearize=linearize)
                 self.move(x=-(x-2*radius))
                 self.arc(x=-radius,y=-radius,direction='CCW',radius=radius, linearize=linearize)
                 self.move(y=-(y-2*radius))
@@ -969,7 +969,7 @@ class G(object):
         else:
             major, major_name = y, 'y'
             minor, minor_name = x, 'x'
-            
+
         if mode.lower() == 'auto':
             actual_spacing = self._meander_spacing(minor, spacing)
             if abs(actual_spacing) != spacing:
@@ -988,7 +988,7 @@ class G(object):
         major_feed = self.speed
         if not minor_feed:
             minor_feed = self.speed
-        
+
         n_passes = int(self._meander_passes(minor, spacing))
 
         for j in range(n_passes):
@@ -1045,7 +1045,7 @@ class G(object):
         else:
             major, major_name = L, 'y'
             minor, minor_name = spacing, 'x'
-        
+
         sign_minor = +1
         sign_major = +1
         if start.upper() == 'UL':
@@ -1063,15 +1063,15 @@ class G(object):
             self.relative()
         else:
             was_absolute = False
-            
+
         for j in range(n_lines):
             self.move(**{major_name: sign_major*major, 'color': color})
 
             if j < (n_lines-1):
                 self.move(**{minor_name: sign_minor*minor, 'color': color})
-            
+
             sign_major = -1*sign_major
-        
+
         if was_absolute:
             self.absolute()
 
@@ -1194,8 +1194,8 @@ class G(object):
         --------
 
         >>> # TODO
-        
-        
+
+
         """
         was_absolute = True
         if not self.is_relative:
@@ -1237,7 +1237,7 @@ class G(object):
         x_pts[-1] -= dx
 
         original_pts = (x_pts, y_pts)
-        
+
         if turn_0 > 1:
             x_pts = x_pts[4*(turn_0-1)::]
             y_pts = y_pts[4*(turn_0-1)::]
@@ -1249,7 +1249,7 @@ class G(object):
         if self.is_relative:
             x_pts = x_pts[1:] - x_pts[:-1]
             y_pts = y_pts[1:] - y_pts[:-1]
-        
+
         if not manual:
             for x_j, y_j in zip(x_pts, y_pts):
                 self.move(x_j, y_j, **kwargs)
@@ -1283,8 +1283,8 @@ class G(object):
         --------
 
         >>> # TODO
-        
-        
+
+
         """
         was_absolute = True
         if not self.is_relative:
@@ -1320,7 +1320,7 @@ class G(object):
         x_pts[-1] -= d_F
 
         original_pts = (x_pts, y_pts)
-        
+
         if turn_0 > 1:
             x_pts = x_pts[4*(turn_0-1)::]
             y_pts = y_pts[4*(turn_0-1)::]
@@ -1332,7 +1332,7 @@ class G(object):
         if self.is_relative:
             x_pts = x_pts[1:] - x_pts[:-1]
             y_pts = y_pts[1:] - y_pts[:-1]
-        
+
         if not manual:
             for x_j, y_j in zip(x_pts, y_pts):
                 self.move(x_j, y_j, **kwargs)
@@ -1347,7 +1347,7 @@ class G(object):
             return x_pts, y_pts, original_pts
 
 
-    def spiral(self, end_diameter, spacing, feedrate, start='center', direction='CW', 
+    def spiral(self, end_diameter, spacing, feedrate, start='center', direction='CW',
                 step_angle = 0.1, start_diameter = 0, center_position=None):
         """ Performs an Archimedean spiral. Start by moving to the center of the spiral location
         then use the 'start' argument to specify a starting location (either center or edge).
@@ -1382,18 +1382,18 @@ class G(object):
 
         >>> # move to third spiral location, this time starting at edge but printing CCW
         >>> g.spiral(20,1,8,start='edge',direction='CCW',center_position=[50,50])
-        
+
         >>> # move to fourth spiral location, starting at center again but printing CCW
         >>> g.spiral(20,1,8,direction='CCW',center_position=[0,50])
-        
+
         """
         start_spiral_turns = (start_diameter/2.0)/spacing
         end_spiral_turns = (end_diameter/2.0)/spacing
-        
+
         #Use current position as center position if none is specified
         if center_position is None:
             center_position = [self._current_position['x'],self._current_position['y']]
-        
+
         #Keep track of whether currently in relative or absolute mode
         was_relative = True
         if self.is_relative:
@@ -1404,7 +1404,7 @@ class G(object):
         # SEE: https://www.comsol.com/blogs/how-to-build-a-parameterized-archimedean-spiral-geometry/
         b = spacing/(2*math.pi)
         t = np.arange(start_spiral_turns*2*math.pi, end_spiral_turns*2*math.pi, step_angle)
-        
+
         #Add last final point to ensure correct outer diameter
         t = np.append(t,end_spiral_turns*2*math.pi)
         if start == 'center':
@@ -1413,7 +1413,7 @@ class G(object):
             t = t[::-1]
         else:
             raise Exception("Must either choose 'center' or 'edge' for starting position.")
-        
+
         #Move to starting positon
         if (direction == 'CW' and start == 'center') or (direction == 'CCW' and start == 'edge'):
             x_move = -t[0]*b*math.cos(t[0])+center_position[0]
@@ -1441,11 +1441,11 @@ class G(object):
         if was_relative:
                 self.relative()
 
-    def gradient_spiral(self, end_diameter, spacing, gradient, feedrate, flowrate, 
+    def gradient_spiral(self, end_diameter, spacing, gradient, feedrate, flowrate,
                 start='center', direction='CW', step_angle = 0.1, start_diameter = 0,
                 center_position=None, dead_delay=0):
         """ Identical motion to the regular spiral function, but with the control of two syringe pumps to enable control over
-            dielectric properties over the course of the spiral. Starting with simply hitting certain dielectric constants at 
+            dielectric properties over the course of the spiral. Starting with simply hitting certain dielectric constants at
             different values along the radius of the spiral.
 
         Parameters
@@ -1527,7 +1527,7 @@ class G(object):
                 d_0 = r_0*2
                 if d_0 == 0:
                     d_0 = 1e-10
-                
+
                 def exact_length(d0,d1,h):
                     """Calculates the exact length of an archimedean given the spacing, inner and outer diameters.
                     SEE: http://www.giangrandi.ch/soft/spiral/spiral.shtml
@@ -1573,11 +1573,11 @@ class G(object):
                     f_df_dt = (exact_length(d_0,D_1,h)-L)/1000/exact_length_derivative(D_1,h)
                     if f_df_dt < tol:
                         break
-                    D_1 -= f_df_dt   
+                    D_1 -= f_df_dt
                 return D_1/2
-        
+
             def rollover(val,limit,mode):
-                if val < limit: 
+                if val < limit:
                     if mode == 'max':
                         return val
                     elif mode == 'min':
@@ -1610,14 +1610,14 @@ class G(object):
                     Fraction of SrTi03 in part a
                 """
                 return 1 - ((e-e_b)*((n-1)*e_b-n*e_a))/(sr*(e_b-e_a)*(n*(e-e_b)+e_b))
-            
+
             """
             This is a key line of the extrusion values calculations.
-            It starts off by calculating the exact length along the spiral for the current 
-            radius, then adds/subtracts on the dead volume delay (in effect looking into the 
-            future path) to this length, then recalculates the appropriate radius at this new 
-            postiion. This is value is then used in the gradient function to determine the minor 
-            fraction of the mixed elements. Note that if delay is 0, then this line will have no 
+            It starts off by calculating the exact length along the spiral for the current
+            radius, then adds/subtracts on the dead volume delay (in effect looking into the
+            future path) to this length, then recalculates the appropriate radius at this new
+            postiion. This is value is then used in the gradient function to determine the minor
+            fraction of the mixed elements. Note that if delay is 0, then this line will have no
             effect. If the spiral is moving outwards it must add the dead volume delay, whereas if
             the spiral is moving inwards, it must subtract it.
 
@@ -1637,11 +1637,11 @@ class G(object):
 
         start_spiral_turns = (start_diameter/2.0)/spacing
         end_spiral_turns = (end_diameter/2.0)/spacing
-        
+
         #Use current position as center position if none is specified
         if center_position is None:
             center_position = [self._current_position['x'],self._current_position['y']]
-        
+
         #Keep track of whether currently in relative or absolute mode
         was_relative = True
         if self.is_relative:
@@ -1652,7 +1652,7 @@ class G(object):
         #SEE: https://www.comsol.com/blogs/how-to-build-a-parameterized-archimedean-spiral-geometry/
         b = spacing/(2*math.pi)
         t = np.arange(start_spiral_turns*2*math.pi, end_spiral_turns*2*math.pi, step_angle)
-        
+
         #Add last final point to ensure correct outer diameter
         t = np.append(t,end_spiral_turns*2*math.pi)
         if start == 'center':
@@ -1661,7 +1661,7 @@ class G(object):
             t = t[::-1]
         else:
             raise Exception("Must either choose 'center' or 'edge' for starting position.")
-        
+
         #Move to starting positon
         if (direction == 'CW' and start == 'center') or (direction == 'CCW' and start == 'edge'):
             x_move = -t[0]*b*math.cos(t[0])+center_position[0]
@@ -1688,13 +1688,13 @@ class G(object):
             else:
                 raise Exception("Must either choose 'CW' or 'CCW' for spiral direction.")
             y_move = step*b*math.sin(step)+center_position[1]
-            
+
             radius_pos = np.sqrt((self._current_position['x']-center_position[0])**2 + (self._current_position['y']-center_position[1])**2)
             line_length = np.sqrt((x_move-self._current_position['x'])**2 + (y_move-self._current_position['y'])**2)
             extrusion_values = calculate_extrusion_values(radius_pos,line_length)
             syringe_extrusion += extrusion_values[:2]
             self.move(x_move, y_move, a=syringe_extrusion[0],b=syringe_extrusion[1],color=extrusion_values[2])
-        
+
         #Set back to relative mode if it was previsously before command was called
         if was_relative:
                 self.relative()
@@ -1734,10 +1734,10 @@ class G(object):
 
         Examples
         --------
-        
+
         Printing a 10 mm (L) x 15 mm (W) x 5 mm (H) log pile with a road width of 1.4 mm and nozzle size of 0.7 mm (700 um) extruding at 55 psi pressure via com_port 5
         >>> g.log_pile(10, 15, 1.4, 0.7, 1, {'P': 5}, 55)
-        
+
         !!! note
 
             Currently, this assumes you are using a pressure-based printing method (e.g., Nordson).
@@ -1785,7 +1785,7 @@ class G(object):
                 self.move(y=-offset/2, color=COLORS['pre'])
             elif start == 'UL' and orientation == 'y':
                 self.move(x=+offset/2, color=COLORS['pre'])
-            
+
             # UR
             elif start == 'UR' and orientation == 'x':
                 self.move(y=-offset/2, color=COLORS['pre'])
@@ -1801,7 +1801,7 @@ class G(object):
         def post_offset(next_start, next_orientation, offset):
             # LL
             if next_start == 'LL' and next_orientation == 'x':
-                self.move(y=-extra_offset, color=COLORS['post']) 
+                self.move(y=-extra_offset, color=COLORS['post'])
                 self.move(x=-offset/2, color=COLORS['offset'])
                 self.move(y=extra_offset, color=COLORS['post'])
             elif next_start == 'LL' and next_orientation == 'y':
@@ -1818,7 +1818,7 @@ class G(object):
                 self.move(x=-extra_offset, color=COLORS['post'])
                 self.move(y=+offset/2, color=COLORS['offset'])
                 self.move(x=extra_offset, color=COLORS['post'])
-            
+
             # UR
             elif next_start == 'UR' and next_orientation == 'x':
                 self.move(y=extra_offset, color=COLORS['post'])
@@ -2017,7 +2017,7 @@ class G(object):
         # if extruding source HAS been specified
         else:
             self.extrusion_state[dispenser] = {'printing': True, 'value': f'{speed:.6f}'}
-        
+
         # legacy code
         self.extruding = [dispenser, True]
 
@@ -2134,7 +2134,7 @@ class G(object):
     def run_pump(self, com_port):
         '''Run pump with internally stored settings.
             Note: to run a pump, first call `set_rate` then call `run`'''
-        
+
         extruder_id = f'HApump_com_port{com_port}'
         if extruder_id not in self.extrusion_state.keys():
             self.extrusion_state[extruder_id] = {'printing': True, 'value': 1}
@@ -2145,7 +2145,7 @@ class G(object):
         self.write(f'Call runPump P{com_port}')
 
         self.extruding = [com_port, True, 1]
-    
+
     def stop_pump(self, com_port):
         '''Stops the pump'''
 
@@ -2181,7 +2181,7 @@ class G(object):
 ; \t{self.print_time/60:.1f} min
 ; \t{self.print_time/60/60:.1f} hrs
 ''')
-        
+
     # ROS3DA Functions  #######################################################
 
 
@@ -2217,7 +2217,7 @@ class G(object):
             for point in switch_points:
                 self.toggle_pressure(com_port)
                 self.move(x=dist)
-                
+
             #Move to push into substrate
             self.move(z=-print_height)
             self.feed(travel_feed)
@@ -2253,7 +2253,7 @@ class G(object):
 
         print_height = np.copy(self._current_position['z'])
         print_feed = np.copy(self.speed)
-        
+
         for pressure in pressures:
             direction = 1
             self.set_pressure(com_port,pressure)
@@ -2376,7 +2376,7 @@ class G(object):
             ----------
             filename : str
                 The name of the exported CSV file.
-            
+
         '''
         _, file_extension = os.path.splitext(filename)
         if file_extension is False:
@@ -2388,14 +2388,14 @@ class G(object):
 
         for h in self.history:
             any_on = any([entry['printing'] is True and entry['value'] != 0 for entry in h['PRINTING'].values()])
-            
+
             extruding_history.append([h['CURRENT_POSITION']['X'],
                                       h['CURRENT_POSITION']['Y'],
                                       h['CURRENT_POSITION']['Z']])
             color_history.append(h['COLOR'] if h['COLOR'] is not None else DEFAULT_FILAMENT_COLOR)
             printing_history.append(1 if any_on else 0)
 
-        
+
         extruding_history = np.array(extruding_history).reshape(-1,3)
         color_history = np.array(color_history).reshape(-1, 3)
         printing_history = np.array(printing_history).reshape(-1,1)
@@ -2413,7 +2413,7 @@ class G(object):
 
     def gen_geometry(self,outfile,filament_diameter=0.8,cut_point=None,preview=False,color_incl=None):
         """ Creates an openscad file to create a CAD model from the print path.
-        
+
         Parameters
         ----------
         outfile : str
@@ -2449,7 +2449,7 @@ class G(object):
                 angle = math.radians(360 / (2 * num_points) * i)
                 circle_pts.append(sldutils.Point3(radius * math.cos(angle), radius * math.sin(angle), 0))
             return circle_pts
-        
+
         # SolidPython setup for geometry creation
         extruded = 0
         filament_cross = circle(radius=filament_diameter/2)
@@ -2478,7 +2478,7 @@ class G(object):
                 extruded += sldutils.extrude_along_path(shape_pts=filament_cross, path_pts=[sldutils.Point3(*position_hist[index-1]),sldutils.Point3(*position_hist[index])])
                 extruded += sld.translate(position_hist[index-1])(sld.sphere(r=filament_diameter/2,segments=20))
                 extruded += sld.translate(position_hist[index])(sld.sphere(r=filament_diameter/2,segments=20))
-                
+
         # Export geometry to file
         file_out = os.path.join(os.curdir, '{}.scad'.format(outfile))
         print("\nSCAD file written to: \n%(file_out)s" % vars())
@@ -2559,24 +2559,24 @@ class G(object):
             with the g.move command. This was primarily used for mixing
             nozzle debugging.
         nozzle_cam : bool (default: 'False')
-            When using the 'vpython' backend and nozzle_cam is set to 
-            True, the camera will remained centered on the tip of the 
+            When using the 'vpython' backend and nozzle_cam is set to
+            True, the camera will remained centered on the tip of the
             nozzle during the animation.
         fast_forward : int (default: 1)
             When using the 'vpython' backend, the animation can be
-            sped up by the factor specified in the fast_forward 
+            sped up by the factor specified in the fast_forward
             parameter.
         nozzle_dims : list (default: [1.0,20.0])
-            When using the 'vpython' backend, the dimensions of the 
+            When using the 'vpython' backend, the dimensions of the
             nozzle can be specified using a list in the format:
             [nozzle_diameter, nozzle_length].
         substrate_dims: list (default: [0.0,0.0,-0.5,100,1,100])
-            When using the 'vpython' backend, the dimensions of the 
-            planar substrate can be specified using a list in the 
+            When using the 'vpython' backend, the dimensions of the
+            planar substrate can be specified using a list in the
             format: [x, y, z, length, height, width].
         scene_dims: list (default: [720,720])
             When using the 'vpython' backened, the dimensions of the
-            viewing window can be specified using a list in the 
+            viewing window can be specified using a list in the
             format: [width, height]
         ax : matplotlib axes object
             Useful for adding additional functionailities to plot when debugging.
@@ -2592,7 +2592,7 @@ class G(object):
 
         if backend == '2d':
            ax = plot2d(self.history, ax=ax, hide_travel=hide_travel, **kwargs)
-    
+
 
 
         elif backend == 'matplotlib' or backend == '3d':
@@ -2721,7 +2721,7 @@ class G(object):
 
     def _update_current_position(self, mode='auto', x=None, y=None, z=None, color = (0,0,0),
                                  **kwargs):
-        
+
         new_state = copy.deepcopy(self.history[-1])
         new_state['COORDS'] = (x, y, z)
 
@@ -2767,7 +2767,7 @@ class G(object):
         # for k, v in self.extrusion_state.items():
         #     new_state['PRINTING'][k] = v
         new_state['PRINTING'] = copy.deepcopy(self.extrusion_state)
-        
+
         self.position_history.append((x, y, z))
 
         try:
@@ -2778,7 +2778,7 @@ class G(object):
         self.color_history.append(color)
         new_state['COLOR'] = color
         new_state['PRINT_SPEED'] = self.speed
-        
+
 
         len_history = len(self.position_history)
         if (len(self.speed_history) == 0
@@ -2799,4 +2799,3 @@ class G(object):
         if z is None:
             z = self.current_position['z']
         self.print_time += np.linalg.norm([x,y,z]) / self.speed
-

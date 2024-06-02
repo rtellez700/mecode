@@ -16,7 +16,7 @@ except:
 from test_main import TestGFixture
 
 class TestGMatrix(TestGFixture):
-    
+
     def getGClass(self):
         return GMatrix
 
@@ -29,10 +29,10 @@ class TestGMatrix(TestGFixture):
         print('>>>>>> ', self.expected)
         self.expect_cmd("""
         G1 F10
-        G1 X-5.000000 Y0.000000
-        G1 X0.000000 Y10.000000
-        G1 X5.000000 Y-0.000000
-        G1 X-0.000000 Y-10.000000
+        G1 X-5.000000 Y0.000000;
+        G1 X0.000000 Y10.000000;
+        G1 X5.000000 Y-0.000000;
+        G1 X-0.000000 Y-10.000000;
         """)
         self.g.pop_matrix()
         self.assert_output()
@@ -41,14 +41,14 @@ class TestGMatrix(TestGFixture):
         # This makes sure that the pop matrix worked.
         self.g.rect(10, 5)
         self.expect_cmd("""
-        G1 X0.000000 Y5.000000
-        G1 X10.000000 Y0.000000
-        G1 X0.000000 Y-5.000000
-        G1 X-10.000000 Y0.000000
+        G1 X0.000000 Y5.000000;
+        G1 X10.000000 Y0.000000;
+        G1 X0.000000 Y-5.000000;
+        G1 X-10.000000 Y0.000000;
         """)
         self.assert_output()
-        self.assert_position({'x': 0, 'y': 0, 'z': 0})        
-        
+        self.assert_position({'x': 0, 'y': 0, 'z': 0})
+
     def test_multiple_matrix_operations(self):
         self.g.feed(10)
         # See if we can rotate our rectangel drawing by 90 degrees, but
@@ -59,10 +59,10 @@ class TestGMatrix(TestGFixture):
         self.g.rect(10, 5)
         self.expect_cmd("""
         G1 F10
-        G1 X-5.000000 Y0.000000
-        G1 X0.000000 Y10.000000
-        G1 X5.000000 Y-0.000000
-        G1 X-0.000000 Y-10.000000
+        G1 X-5.000000 Y0.000000;
+        G1 X0.000000 Y10.000000;
+        G1 X5.000000 Y-0.000000;
+        G1 X-0.000000 Y-10.000000;
         """)
         self.g.pop_matrix()
         self.assert_output()
@@ -75,10 +75,10 @@ class TestGMatrix(TestGFixture):
         self.g.rect(10, 5)
         self.expect_cmd("""
         G1 F10
-        G1 X0.000000 Y10.000000
-        G1 X20.000000 Y0.000000
-        G1 X0.000000 Y-10.000000
-        G1 X-20.000000 Y0.000000
+        G1 X0.000000 Y10.000000;
+        G1 X20.000000 Y0.000000;
+        G1 X0.000000 Y-10.000000;
+        G1 X-20.000000 Y0.000000;
         """)
         self.g.pop_matrix()
         self.assert_output()
@@ -96,15 +96,15 @@ class TestGMatrix(TestGFixture):
         self.g.abs_move(x=1)
         self.assert_almost_position({'x': 1.0, 'y': 0, 'z': 0})
         self.g.abs_move(z=2)
-        self.assert_almost_position({'x': 1.0, 'y': 0, 'z': 2})        
+        self.assert_almost_position({'x': 1.0, 'y': 0, 'z': 2})
 
         self.expect_cmd("""
         G1 F10
-        G90  
-        G1 X-1.000000 Y0.000000 Z0.000000
+        G90
+        G1 X-1.000000 Y0.000000 Z0.000000;
         G91
-        G90 
-        G1 X-1.000000 Y0.000000 Z2.000000
+        G90
+        G1 X-1.000000 Y0.000000 Z2.000000;
         G91
         """)
         self.assert_output()
@@ -115,14 +115,14 @@ class TestGMatrix(TestGFixture):
         self.g.abs_move(x=1)
         self.assert_almost_position({'x': 1.0, 'y': 0, 'z': 0})
         self.g.abs_move(z=2)
-        self.assert_almost_position({'x': 1.0, 'y': 0, 'z': 2})        
+        self.assert_almost_position({'x': 1.0, 'y': 0, 'z': 2})
         self.expect_cmd("""
         G1 F10
-        G90  
-        G1 X0.000000 Y1.000000 Z0.000000
+        G90
+        G1 X0.000000 Y1.000000 Z0.000000;
         G91
-        G90 
-        G1 X0.000000 Y1.000000 Z2.000000
+        G90
+        G1 X0.000000 Y1.000000 Z2.000000;
         G91
         """)
         self.assert_output()
@@ -146,7 +146,7 @@ class TestGMatrix(TestGFixture):
         G17
         G2 X0.000000 Y10.000000 R5.000000
         """)
-        self.assert_output()        
+        self.assert_output()
         self.assert_almost_position({'x': 10, 'y': 0, 'z': 0})
 
     def test_current_position(self):
