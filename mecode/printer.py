@@ -123,8 +123,9 @@ class Printer(object):
             self._disconnect_pending = False
             self._start_read_thread()
             if s is None:
-                while len(self.responses) == 0:
-                    sleep(0.01)  # wait until the start message is recieved.
+                start_time = time()
+                while len(self.responses) == 0 and time() < start_time + 0.1:
+                    sleep(0.01)  # wait until a start message is recieved
                 self.responses = []
         logger.debug('Connected to {}'.format(self.s))
 
@@ -197,6 +198,7 @@ class Printer(object):
         """
         self._start_read_thread()
         self._start_print_thread()
+        self.reset_linenumber(self._current_line_idx)
 
     def sendline(self, line):
         """ Send the given line over serial by appending it to the send buffer
