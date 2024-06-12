@@ -344,6 +344,72 @@ class G(object):
         """
         self.write('G4 P{}'.format(time))
 
+    def auto_home(self,
+            X = True,
+            Y = True,
+            Z = True,
+            restore_leveling_after = None,
+            skip_if_trusted = None,
+            nozzle_raise_distance = None,
+            ):
+        """ Automatically calibrate the axis positions.
+
+        Parameters
+        ----------
+        home_x : bool (default: True)
+            Home the X axis.
+        home_y : bool (default: True)
+            Home the Y axis.
+        home_z : bool (default: True)
+            Home the Z axis.
+        restore_leveling_after : bool (default: True)
+            Restore bed leveling state after homing.
+        skip_if_trusted : bool (default: False)
+            Skip homing if the position is already trusted.
+        nozzle_raise_distance : float (default: 0.0)
+            The distance to raise the nozzle before homing.
+        """
+        fields = dict(
+                G28 = True,
+                L = restore_leveling_after,
+                O = skip_if_trusted,
+                R = nozzle_raise_distance,
+                X = X,
+                Y = Y,
+                Z = Z)
+        fields = [key for key, val in fields.items() if val]
+        self.write(" ".join(fields))
+
+    def park_toolhead(self, z_mode = None):
+        """ Park the toolhead if supported.
+
+        Parameters
+        ----------
+        z_mode : int
+            0: Raise the nozzle to the Z-park height
+            1: Raise or lower the nozzle to the Z-park height
+            2: Raise the nozzle by the Z-park amount
+        """
+        if z_mode is not None:
+            self.write("G27 P{}".format(z_mode))
+        else:
+            self.write("G27")
+
+    def finish_moves(self, wait=True):
+        """ Halts the processing of G-code until moves are completed.
+
+        Parameters
+        ----------
+        wait : bool (default: True)
+            Whether to pause python execution as well.
+        """
+        self.write("M400", resp_needed=wait)
+
+    def break_and_continue(self):
+        """ Stop waiting and continue processing G-code.
+        """
+        self.write("M108")
+
     # Composed Functions  #####################################################
 
     def setup(self):
