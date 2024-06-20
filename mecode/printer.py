@@ -389,6 +389,8 @@ class Printer(object):
                     full_resp = ''
                 if 'start' in line:
                     self.responses.append(line)
+                if line.startswith('echo:'):
+                    logger.info(line.rstrip()[len('echo:'):])
             else:  # if no printer is attached, wait 10ms to check again.
                 sleep(0.01)
 
