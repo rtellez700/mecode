@@ -337,7 +337,7 @@ class Printer(object):
                     self._ok_received.wait(1)
                 line = self._next_line()
                 with self._communication_lock:
-                    self.s.write(line)
+                    self.s.write(line.encode())
                     self._ok_received.clear()
                     self._current_line_idx += 1
                 # Grab the just sent line without line numbers or checksum
@@ -355,7 +355,7 @@ class Printer(object):
         full_resp = ''
         while not self.stop_reading:
             if self.s is not None:
-                line = self.s.readline()
+                line = self.s.readline().decode()
                 if line.startswith('Resend: '):  # example line: "Resend: 143"
                     self._current_line_idx = int(line.split()[1]) - 1 + self._reset_offset
                     logger.debug('Resend Requested - {}'.format(line.strip()))
