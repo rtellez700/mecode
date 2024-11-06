@@ -4,8 +4,10 @@ on:
     branches:
       - master 
       - main
+
 permissions:
   contents: write
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -28,4 +30,15 @@ jobs:
       - run: pip install mkdocs-material
       - run: pip install 'mkdocstrings[python]'
       - run: pip install . # install local mecode
-      - run: mkdocs gh-deploy --force
+      - run: pip install mike  # Install mike
+
+      # Step to get version dynamically using hatch
+      - name: Get version from hatch
+        id: get_version
+        run: |
+          VERSION=$(hatch version --show)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Version: $VERSION"
+      
+      - run: mkdocs build  # Build the documentation
+      - run: mike deploy ${{ env.VERSION }} -m "Deploy version ${{ env.VERSION }}" --update-aliases latest  # Deploy using mike with alias
